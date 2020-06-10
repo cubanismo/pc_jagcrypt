@@ -150,7 +150,7 @@ fopen_with_extension(char *filename, char *ext, char *mode)
 #define SPLITSIZE 0x200000
 
 void
-WriteHILO(char *filename, int nosplit)
+WriteHILO(char *filename, size_t srcoffset, int nosplit)
 {
 	FILE *hi, *lo;			/* file pointers for high and low data, respectively */
 	FILE *infile;			/* input file */
@@ -188,6 +188,12 @@ WriteHILO(char *filename, int nosplit)
 	/* open the file to be ROMed */
 	infile = fopen(filename, "rb");
 	if (!infile) {
+		perror(filename);
+		exit(1);
+	}
+
+	if (fseek(infile, srcoffset, SEEK_SET))
+	{
 		perror(filename);
 		exit(1);
 	}
@@ -240,7 +246,7 @@ WriteHILO(char *filename, int nosplit)
  * second byte, etc.
  */
 
-void Write4xROM(char * filename)
+void Write4xROM(char * filename, size_t srcoffset)
 {
 	FILE *u1, *u2, *u3, *u4;	/* file pointers for the four pieces respectively */
 	FILE *infile;			/* input file */
@@ -275,6 +281,13 @@ void Write4xROM(char * filename)
 		perror(filename);
 		exit(1);
 	}
+
+	if (fseek(infile, srcoffset, SEEK_SET))
+	{
+		perror(filename);
+		exit(1);
+	}
+
 	while (byteswritten < romsize) {
 		c = fgetc(infile);
 		fputc(c, u4);
@@ -297,7 +310,7 @@ void Write4xROM(char * filename)
  * Write out as a single ROM cartridge image
  */
 
-void Write1xROM(char * filename)
+void Write1xROM(char * filename, size_t srcoffset)
 {
 	FILE * u1;				/* output file */
 	FILE * infile;			/* input file */
@@ -322,6 +335,12 @@ void Write1xROM(char * filename)
  */
 	infile = fopen(filename, "rb");
 	if (!infile)
+	{
+		perror(filename);
+		exit(1);
+	}
+
+	if (fseek(infile, srcoffset, SEEK_SET))
 	{
 		perror(filename);
 		exit(1);

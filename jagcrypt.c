@@ -111,7 +111,7 @@ int32_t MD5state[4];		/* MD5 hash for file+fill */
 /*
  * boot flags and vectors
  */
-const byte Romconfig[12] = {
+byte Romconfig[12] = {
 	0x04, 0x04, 0x04, 0x04,
 	0x00, 0x80, 0x20, 0x00,
 	0x00, 0x00, 0x00, 0x00
@@ -139,7 +139,84 @@ void usage(void)
 	fprintf(stderr, "   jagcrypt -4 -p bar.abs\n");
 	exit(1);
 }
-	
+
+/* XXX Support big-endian machines */
+#define SWAPUINT32(b) \
+	(((b) << 24) | (((b) & 0x0000ff00) << 8) | \
+	(((b) & 0x00ff0000) >> 8) | ((b) >> 24))
+
+static int DetectFileType(FILE *infile)
+{
+	uint32_t rombits;
+	uint32_t romstart;
+	uint32_t romflags;
+	uint32_t romstart_swapped;
+	uint32_t romflags_swapped;
+	uint32_t *uptr;
+
+	if (fseek(infile, 0x400, SEEK_SET))
+	{
+		/*
+		 * Probably not a valid file, but not fatal here.
+		 * Could be a tiny ABS?  However, it is not a ROM
+		 * file.
+		 */
+		return 0;
+	}
+
+	if (fread(&rombits, 4, 1, infile) != 1)
+	{
+		/* Not fatal, same logic as above */
+		return 0;
+	}
+
+	/* rombits is endian-agnostic */
+
+	if (fread(&romstart, 4, 1, infile) != 1)
+	{
+		/* Not fatal, same logic as above */
+		return 0;
+	}
+
+	romstart_swapped = SWAPUINT32(romstart);
+
+	if (fread(&romflags, 4, 1, infile) != 1)
+	{
+		/* Not fatal, same logic as above */
+		return 0;
+	}
+
+	romflags_swapped = SWAPUINT32(romflags);
+
+	switch (rombits) {
+		case 0x04040404:
+		case 0x02020202:
+		case 0x00000000:
+			break;
+		default:
+			return 0;
+	}
+
+	/* Not strictly required, but is it ever not this? */
+	if (romstart_swapped != 0x00802000)
+	{
+		return 0;
+	}
+
+	if (romflags_swapped != 0x00000000 && romflags_swapped != 0x00000001)
+	{
+		return 0;
+	}
+
+	/* Update Romconfig to match existing ROM data */
+	uptr = (uint32_t *)&Romconfig[0];
+	*uptr++ = rombits;
+	*uptr++ = romstart;
+	*uptr++ = romflags;
+
+	return 1;
+}
+
 int main(int argc, char **argv)
 {
 	int useprevdata;	/* 1 if we should use an existing .XXX file for RSA data */
@@ -152,12 +229,13 @@ int main(int argc, char **argv)
 	size_t xxxsize;		/* size of .XXX file */
 	size_t powof2;		/* smallest power of 2 that the ROM can fit into */
 	int ateof;			/* flag: set to 1 at end of file */
+	size_t srcoffset;	/* 0x2000 if <filename> is a ROM file, 0 otherwise */
 
 	xxxsize = 1036;		/* default size of a .XXX file */
 
 	printf("\n");
 	printf("JAGUAR Cartridge (quik) Encryption Code\n");
-	printf("Version 0.6c\n");
+	printf("Version 0.7\n");
 
 	if (argc < 3)
 		usage();
@@ -242,6 +320,22 @@ int main(int argc, char **argv)
 	if (!fhandle)
 	{
 		/* report error and exit */
+		perror(filename);
+		exit(1);
+	}
+
+	if (DetectFileType(fhandle))
+	{
+		printf("Detected existing ROM header.\n");
+		srcoffset = 0x2000;
+	}
+	else
+	{
+		srcoffset = 0;
+	}
+
+	if (fseek(fhandle, srcoffset, SEEK_SET))
+	{
 		perror(filename);
 		exit(1);
 	}
@@ -474,11 +568,11 @@ int main(int argc, char **argv)
 
 	printf("Writing data...\n");
 	if (outfmt == HILO)			/* Hi/Lo split */
-		WriteHILO(filename, nosplit);
+		WriteHILO(filename, srcoffset, nosplit);
 	else if (outfmt == ROM4)
-		Write4xROM(filename);
+		Write4xROM(filename, srcoffset);
 	else
-		Write1xROM(filename);
+		Write1xROM(filename, srcoffset);
 
 	return 0;
 }
