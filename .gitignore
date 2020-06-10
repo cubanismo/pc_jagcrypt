@@ -1,0 +1,5 @@
+jagcrypt
+jagcrypt.exe
+*.o
+.*.swp
+*~
