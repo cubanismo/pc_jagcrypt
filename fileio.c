@@ -23,7 +23,7 @@
 extern byte inbuf[];
 
 /* total size of the ROM we're creating (always a power of 2 and > 0x2000) */
-extern long romsize;
+extern size_t romsize;
 
 /*
  * read an ASCII assembly language file (with
@@ -154,8 +154,8 @@ WriteHILO(char *filename, int nosplit)
 {
 	FILE *hi, *lo;			/* file pointers for high and low data, respectively */
 	FILE *infile;			/* input file */
-	long byteswritten;		/* bytes of ROM written */
-	long bytesleftinfile;		/* bytes left to write in this 2 megabyte piece */
+	size_t byteswritten;		/* bytes of ROM written */
+	size_t bytesleftinfile;		/* bytes left to write in this 2 megabyte piece */
 	char hiext[6];			/* file extensions for hi/lo parts of file */
 	char loext[6];
 	byte *outbuf;			/* pointer to output data */
@@ -244,7 +244,7 @@ void Write4xROM(char * filename)
 {
 	FILE *u1, *u2, *u3, *u4;	/* file pointers for the four pieces respectively */
 	FILE *infile;			/* input file */
-	long byteswritten;		/* bytes of ROM written */
+	size_t byteswritten;		/* bytes of ROM written */
 	int c;
 	byte *outbuf;
 
@@ -301,7 +301,7 @@ void Write1xROM(char * filename)
 {
 	FILE * u1;				/* output file */
 	FILE * infile;			/* input file */
-	long byteswritten;		/* bytes of ROM written */
+	size_t byteswritten;		/* bytes of ROM written */
 	int c;
 
 /*

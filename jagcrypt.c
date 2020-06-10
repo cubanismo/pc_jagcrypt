@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 #include "rsa.h"
@@ -105,7 +106,7 @@ byte boot1[] = {
 
 long filesize;			/* length of file (+ 0x2000, since ROM starts at 0x802000 */
 long romsize;			/* size of ROM needed to contain the file */
-long MD5state[4];		/* MD5 hash for file+fill */
+int32_t MD5state[4];		/* MD5 hash for file+fill */
 
 /*
  * boot flags and vectors
@@ -148,8 +149,8 @@ int main(int argc, char **argv)
 	int outfmt;			/* output format */
 	int nosplit;		/* split HI/LO parts of output (if 0) or not (if -1) */
 	char * filename;	/* name of file to encrypt */
-	long xxxsize;		/* size of .XXX file */
-	long powof2;		/* smallest power of 2 that the ROM can fit into */
+	size_t xxxsize;		/* size of .XXX file */
+	size_t powof2;		/* smallest power of 2 that the ROM can fit into */
 	int ateof;			/* flag: set to 1 at end of file */
 
 	xxxsize = 1036;		/* default size of a .XXX file */
@@ -293,7 +294,7 @@ int main(int argc, char **argv)
 	ateof = 0;
 	do
 	{
-		long numbytes;
+		size_t numbytes;
 
 		numbytes = fread(inbuf, 1, BUFSIZE, fhandle);
 		if (numbytes < 0)
@@ -380,7 +381,7 @@ int main(int argc, char **argv)
 #define HASHBASE 0x24
 #define RANGE 0x54
 		byte *a0, *a1, *a2, *a3, *a4;
-		long d0, d1, d2, d3;
+		int32_t d0, d1, d2, d3;
 
 		printf("Calculating RSA...\n");
 
@@ -393,9 +394,9 @@ int main(int argc, char **argv)
 		d1 = 0xbc;
 		a3 = a0+HASHBASE;
 
-		d0 = *(long *)a4;		/* don't use getlong, MD5state is in native format */
+		d0 = *(int32_t *)a4;		/* don't use getlong, MD5state is in native format */
 		Putlong(a3-4, ~d0);
-		d0 = *(long *)(a4+4);
+		d0 = *(int32_t *)(a4+4);
 		Putlong(a3+32, ~d0);
 
 		d3 = 0;
@@ -404,7 +405,7 @@ int main(int argc, char **argv)
 			d0 = Getlong(a0+d1);	/* need Getlong because it's in 68000 format */
 			Putlong(a3, d0);
 			a3 += 4;
-			d0 = *(long *)(a4+d3);
+			d0 = *(int32_t *)(a4+d3);
 			Putlong(a0+d1,d0);
 			d3 = (d3+4) & 0x0f;
 			d1 += 0x40;
@@ -416,7 +417,7 @@ int main(int argc, char **argv)
 		Putlong(a1, d1);
 		a1 += 6;
 		d1 = romsize + 0x800000;
-		d1 = ((unsigned long)d1 >> 16) | ((d1 & 0x0000ffff) << 16);	/* word swap */
+		d1 = ((uint32_t)d1 >> 16) | ((d1 & 0x0000ffff) << 16);	/* word swap */
 		Putlong(a1, d1);
 
 #if 1

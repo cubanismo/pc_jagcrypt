@@ -14,14 +14,14 @@
 #define DEBUGMD5	/* define this to get debugging output from the MD5 function */
 #endif
 
-const long initState[4] = {
+const int32_t initState[4] = {
 	0x67452301,
 	0xEFCDAB89,
 	0x98BADCFE,
 	0x10325476
 };
 
-static const long
+static const int32_t
 hashtable[] = {
 /* futz */
 	0xD76AA478,
@@ -131,13 +131,13 @@ static const int xinc[] = {		/* index increment */
 
 /* rotate left circular by "n" (0 < n < 32) */
 
-static long
-rol(long a, int n)
+static int32_t
+rol(int32_t a, int n)
 {
-	unsigned long ua;
+	uint32_t ua;
 
 	ua = a;
-	return (long)(ua << n) | (ua >> (32-n));
+	return (int32_t)(ua << n) | (ua >> (32-n));
 }
 
 #ifdef DEBUGMD5
@@ -145,7 +145,7 @@ FILE *debugfile;
 #endif
 
 void
-MD5init(long *state)
+MD5init(int32_t *state)
 {
 	int i;
 	for (i = 0; i < 4; i++)
@@ -156,18 +156,18 @@ MD5init(long *state)
 }
 
 void
-MD5trans(long *state, byte *inpdata)
+MD5trans(int32_t *state, byte *inpdata)
 {
-	long a, b, cc, d;
-	const long *hashtab;		/* hash table ptr */
+	int32_t a, b, cc, d;
+	const int32_t *hashtab;		/* hash table ptr */
 	const int *rotater;		/* rotate count table */
 	int rotateindex;	/* rotate count index */
-	int index;		/* index (long aligned) in input buffer, mod 64 */
+	int index;		/* index (32-bit aligned) in input buffer, mod 64 */
 	int incr;		/* index increment */
 	int species;		/* type of mangling to do:
 				   0 == futz, 1 == grind, 2 == hack, 3 == ickify */
 	/* scratch variables */
-	long accum;
+	int32_t accum;
 	int i;
 
 	a = state[0];
