@@ -5,24 +5,24 @@
 
 # Uncomment the following lines to compile for Win32
 
-SYSTYPE   = __GCCWIN32__
-EXESUFFIX = .exe
-GLLIB     = opengl32
-ICON      = vj-ico.o
+#SYSTYPE   = __GCCWIN32__
+#EXESUFFIX = .exe
+#GLLIB     = opengl32
+#ICON      = vj-ico.o
 
 # Uncomment the following lines to compile for *nix
 
-#SYSTYPE   = __GCCUNIX__
-#EXESUFFIX =
-#GLLIB     = GL
-#ICON      =
+SYSTYPE   = __GCCUNIX__
+EXESUFFIX =
+GLLIB     = GL
+ICON      =
 
 CC         = gcc
 LD         = gcc
 TARGET     = jagcrypt$(EXESUFFIX)
 
-CFLAGS = -Wall -Wno-switch -Wno-non-virtual-dtor -O2 -fomit-frame-pointer
-#CFLAGS = -Wall -Wno-switch -Wno-non-virtual-dtor -O2 -D$(SYSTYPE) -Dstricmp="strcasecmp" \
+CFLAGS = -Wall -Wno-switch -O2 -fomit-frame-pointer
+#CFLAGS = -Wall -Wno-switch -O2 -D$(SYSTYPE) -Dstricmp="strcasecmp" \
 #		-fomit-frame-pointer `sdl-config --cflags`
 #		-fomit-frame-pointer `sdl-config --cflags` -g
 #		-fomit-frame-pointer `sdl-config --cflags` -DLOG_UNMAPPED_MEMORY_ACCESSES
