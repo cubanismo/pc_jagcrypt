@@ -4,16 +4,17 @@
 #
 
 # Uncomment the following line to compile for Win32
-#SYSTYPE     = __GCCWIN32__
+# Tested with MSYS2-MinGW32/64, MinGW32, and Cygwin64
+SYSTYPE     = __GCCWIN32__
 
 # Uncomment the following lines to compile for *nix
-SYSTYPE     = __GCCUNIX__
+#SYSTYPE     = __GCCUNIX__
 
 ifeq ($(SYSTYPE),__GCCWIN32__)
   EXESUFFIX = .exe
   WHICH     = where 2>NUL
   # By default, make UPX a no-op
-  UPX       = dir /B
+  UPX       = dir -b
 else
   EXESUFFIX =
   WHICH     = which
