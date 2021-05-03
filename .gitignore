@@ -2,4 +2,8 @@ jagcrypt
 jagcrypt.exe
 *.o
 .*.swp
+Win32/
+x64/
+*.user
+.vs/
 *~
