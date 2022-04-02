@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #define EXTERN		/* trigger definition of global variables */
 #include "rsa.h"
 #include "bytemath.h"

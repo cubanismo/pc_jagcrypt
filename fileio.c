@@ -90,7 +90,7 @@ ReadAsmFile(FILE *fh, byte *buffer, int bufsize)
 			fprintf(stderr, "ERROR: illegal hex digit (%c)\n", c);
 			return 0;
 		}
-		
+
 	/* stuff the byte into the buffer */
 		*buffer++ = val;
 		numbytes++;
@@ -208,7 +208,7 @@ WriteHILO(char *filename, size_t srcoffset, int nosplit)
 
 		/* change the file extension from .HI0 to .HI1, etc. */
 			hiext[3]++; loext[3]++;
-	
+
 		/* re-open files */
 			hi = fopen_with_extension(filename, hiext, "wb");
 			lo = fopen_with_extension(filename, loext, "wb");
@@ -325,10 +325,9 @@ void Write1xROM(char * filename, size_t srcoffset)
 /*
  * Spit out the 0x2000 size header, with RSA signature etc.
  */
-	for(byteswritten=0; byteswritten<0x2000; byteswritten++)
-	{
-		fputc(inbuf[byteswritten], u1);
-	}
+       	/* write the first 0x2000 bytes, including the RSA'd stuff */
+	fwrite(inbuf, 512, 16,u1);
+	byteswritten = 8192;
 
 /*
  * Now send out the rest of the file
@@ -355,4 +354,46 @@ void Write1xROM(char * filename, size_t srcoffset)
 
 	fclose(infile);
 	fclose(u1);
+}
+
+// Write a single file, no splitting at all, big endian format
+void
+WriteSINGLE(char *filename, int nosplit)
+{
+	FILE *outfile;			/* file pointers for output file */
+	FILE *infile;			/* input file */
+	long byteswritten=0;	/* bytes of ROM written */
+	byte *outbuf;			/* pointer to output data */
+	byte tmpbuf[4];			/* input buffer */
+
+	outfile = fopen_with_extension(filename, ".jag", "wb");
+
+	/* write the first 0x2000 bytes, including the RSA'd stuff */
+	fwrite(inbuf, 512, 16, outfile);
+	byteswritten = 8192;
+
+	/* open the file to be ROMed */
+	infile = fopen(filename, "rb");
+	if (!infile) {
+		perror(filename);
+		exit(1);
+	}
+	tmpbuf[0] = fgetc(infile);
+	ungetc(tmpbuf[0], infile);
+	if (tmpbuf[0] >= 0xf6) {
+		printf("Skipping suspected existing header...\n");
+		fseek(infile, 8192, SEEK_SET);
+	}
+
+	outbuf = tmpbuf;	/* use small buffer for temporary I/O */
+	while (byteswritten < romsize) {
+		memset(outbuf, 0xff, 4);
+		fread(outbuf, 4, 1, infile);
+		fwrite(outbuf, 4, 1, outfile);
+		byteswritten += 4;
+	}
+	printf("Wrote %ld bytes of %ld to %s\n", byteswritten, romsize, filename);
+
+	fclose(infile);
+	fclose(outfile);
 }
