@@ -6,16 +6,24 @@
 # Uncomment the following line to compile for Win32
 #SYSTYPE     = __GCCWIN32__
 
+# Uncomment the following lines to compile for cygwin
+SYSTYPE     = __CYGWIN__
+
 # Uncomment the following lines to compile for *nix
 SYSTYPE     = __GCCUNIX__
 
+
 ifeq ($(SYSTYPE),__GCCWIN32__)
   EXESUFFIX = .exe
-  WHICH     = where 2>NUL
+  WHICH     = where 2>/devNUL
   # By default, make UPX a no-op
   UPX       = dir /B
 else
+  ifeq ($(SYSTYPE),__CYGWIN__)
+  EXESUFFIX = .exe
+  else
   EXESUFFIX =
+  endif
   WHICH     = which
   # By default, make UPX a no-op
   UPX       = ls
@@ -49,8 +57,10 @@ OBJS = \
 all: obj $(TARGET)
 
 clean:
-	rm -rf obj
+	@rm -rf obj
 	rm -f ./jagcrypt$(EXESUFFIX)
+	rm -f NUL
+	rm -f *.bak
 
 obj:
 	mkdir obj
@@ -62,6 +72,4 @@ obj/%.o: %.cpp
 	$(THECC) -c $< -o $@
 
 jagcrypt$(EXESUFFIX): $(OBJS)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
-	strip --strip-all jagcrypt$(EXESUFFIX)
-	$(UPX) jagcrypt$(EXESUFFIX)
+	@$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)

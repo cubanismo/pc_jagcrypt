@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #define EXTERN		/* trigger definition of global variables */
 #include "rsa.h"
 #include "bytemath.h"
@@ -14,6 +15,8 @@
 #if 0
 #define DEBUGMD5	/* define this to get debugging output from the MD5 function */
 #endif
+
+extern int quiet;
 
 const int32_t initState[4] = {
 	0x67452301,
@@ -272,7 +275,7 @@ MultRSA(byte *src, byte *dest, int blockcnt)
 	/* stuff neg. count for this group */
 	*dest++ = 0x100 - blockcnt;
 
-	printf("RSA on "); fflush(stdout);
+	if ( !quiet ) { printf("RSA on "); fflush(stdout); }
 
 #ifdef REVERSE
 	Reverse(C_num);
@@ -297,7 +300,7 @@ MultRSA(byte *src, byte *dest, int blockcnt)
 		*--a2 = 0x15;
 		*--a2 = 0;
 #endif
-		printf("%d..", blocknr); fflush(stdout);
+		if ( !quiet ) { printf("%d..", blocknr); fflush(stdout); }
 
 		ModExp(A_num, B_num, C_num, N_num, KEYSIZE);
 
@@ -313,5 +316,5 @@ MultRSA(byte *src, byte *dest, int blockcnt)
 		}
 #endif
 	}
-	printf("\n");
+	if ( !quiet ) printf("\n");
 }
